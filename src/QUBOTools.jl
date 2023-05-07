@@ -4,6 +4,7 @@ using Printf
 using JSON
 using JSONSchema
 using SparseArrays
+using Random
 using RecipesBase
 using Base: @propagate_inbounds
 using InteractiveUtils: subtypes
@@ -67,5 +68,8 @@ include("analysis/interface.jl")
 include("analysis/time.jl")
 include("analysis/metrics.jl")
 include("analysis/plots.jl")
+
+# Synthetic Instance Generation
+include("instances/instances.jl")
 
 end # module
