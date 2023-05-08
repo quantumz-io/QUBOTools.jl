@@ -1,5 +1,5 @@
 @doc raw"""
-    NAE3SAT{T,R}
+    NAE3SAT{T}
 
 Not-all-equal 3-SAT
 """
@@ -11,7 +11,7 @@ struct NAE3SAT{T} <: AbstractProblem{T}
         @assert n >= 3
 
         return new{T}(m, n)
-    end
+    end 
 
     function NAE3SAT{T}(n::Integer, ratio = 2.11) where {T}
         m = trunc(Int, n * ratio)
@@ -20,7 +20,7 @@ struct NAE3SAT{T} <: AbstractProblem{T}
     end
 end
 
-function generate(problem::NAE3SAT{T}, ::SpinDomain) where {T}
+function generate(rng, problem::NAE3SAT{T}, ::SpinDomain) where {T}
     m = problem.m # number of clauses
     n = problem.n # number of variables
 
@@ -37,10 +37,10 @@ function generate(problem::NAE3SAT{T}, ::SpinDomain) where {T}
         union!(C, 1:problem.n)
 
         for j = 1:3
-            c[j] = pop!(C, rand(C))
+            c[j] = pop!(C, rand(rng, C))
         end
         
-        s .= rand((↑,↓), 3)
+        s .= rand(rng, (↑,↓), 3)
 
         for i = 1:3, j = (i+1):3
             x = (c[i], c[j])
@@ -53,4 +53,8 @@ function generate(problem::NAE3SAT{T}, ::SpinDomain) where {T}
     β = zero(T)
 
     return (h, J, α, β)
+end
+
+function generate(rng, problem::NAE3SAT{T}, ::BoolDomain) where {T}
+    return cast(𝕊 => 𝔹, generate(rng, problem, 𝕊)...)
 end
