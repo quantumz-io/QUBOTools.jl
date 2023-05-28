@@ -21,116 +21,92 @@ function generate(rng, problem::XORSAT{T}, ::SpinDomain; kws...) where {T}
     return cast(𝔹 => 𝕊, generate(rng, problem, 𝔹)...; kws...)
 end
 
-# From chook:
-"""
-Using row reduction, determines the number of solutions that satisfy 
-the linear system of equations given by _A.X = _b mod 2.
-Returns zero if no solutions exist.
+function _swap_rows!(x, i, j)
+    x[i,:], x[j,:] .= (x[j,:], x[i,:])
 
-"""
-function find_num_solutions(_A, _b)
+    return nothing
+end
+
+function _num_solutions(A, b)
+    m, n = size(A)
+
+    # start with full rank
+    rank = m
+
+    for i in 1:m
+        if iszero(A[i,:])    # all-zero row encountered
+            if !iszero(b[i]) # no solutions
+                return 0
+            end
+
+            rank -= 1
+        end
+    end
+
+    return 2 ^ (n - rank)
+end
+
+function _mod2_elimination(_A::AbstractMatrix{U}, _b::AbstractVector{U}) where {U<:Integer}
     A = copy(_A)
     b = copy(_b)
 
-    M, N = size(A)
+    m, n = size(A)
 
-    h = 1
-    k = 1
+    i = 1
+    j = 1
 
-    while h <= M && k <= N
-        max_i = h
+    while i <= m && j <= n
+        max_i = i
 
-        for i = h:M
-            if A[i, k] == 1
-                max_i = i
+        for l = i:m
+            if A[l, j] == 1
+                max_i = l
                 break
             end
         end
 
-        if A[max_i, k] == 0
-            k += 1
+        if A[max_i, j] == 0
+            j += 1
         else
-            if h != max_i
-                A[h], A[max_i] = A[max_i], A[h]
-                b[h], b[max_i] = b[max_i], b[h]
+            if i != max_i
+                _swap_rows!(A, i, max_i)
+                _swap_rows!(b, i, max_i)
             end
 
-            for u = (h+1):M
-                flip_val = A[u, k]
-
-                A[u] = (A[u] + flip_val * A[h]) % 2
-                b[u] = (b[u] + flip_val * b[h]) % 2
+            for u in (i+1):m
+                A[u,:] .⊻= A[u,j] .& A[i,:]
+                b[u] ⊻= A[u,j] & b[i]
             end
 
-            h += 1
-            k += 1
+            i += 1
+            j += 1
         end
     end
 
-    # Find rows with all zeros
-    num_all_zeros_rows = 0
+    return (A, b)
+end
 
-    solutions_exist = true
+"""
+    k_regular_k_xorsat(rng, n, k)
 
-    for i = 1:M
-        if all(iszero.(A[:, i])) # All-zero row encountered
-            if b[i] != 0
-                solutions_exist = false
+Generates a ``k``-regurlar ``k``-XORSAT instance with ``n`` boolean variables.
+
+"""
+function k_regular_k_xorsat(rng, n, k)
+    idx = zeros(Int, n, k)
+
+    while true
+        # generate candidate
+        while true
+            for j = 1:k
+                idx[:, i] = np.random.permutation(n)
+
+            if all(np.unique(row).size == k for row in indices):
                 break
-            end
 
-            num_all_zeros_rows += 1
-        end
-    end
+        b = np.random.choice(2, n)
 
-    if solutions_exist
-        rank = M - num_all_zeros_rows
-
-        num_solutions = 2^(N - rank)
-    else
-        num_solutions = 0
-    end
-
-    return num_solutions
-end
-
-"""
-Generates a r-regurlar k-XORSAT instance with n variables.
-
-"""
-function r_regular_k_xorsat(rng, n, r, k)
-    idx = Vector{Int}(undef, n, k)
-
-    while true
-        for j = 1:k
-            idx[:, j] .= shuffle(rng, 1:n)
-        end
-
-        for i = 1:n
-            if !allunique(idx[i, :])
-    end
-
-    b = rand((0, 1), n)
-
-    return (idx, b)
-end
-
-"""
-Repetitively generates k-regular k-XORSAT problems until an instance
-with non-zero solutions is obtained.
-Returns the resultant XORSAT instance formulated as an
-Ising minimization problem.
-Also returns the ground state energy and ground state degenaracy.
-
-"""
-function plant_regular_xorsat(k, n)
-    idx = nothing
-    b = nothing
-    A = nothing
-    num_solutions = nothing
-
-    while true
-        idx, b = regular_xorsat(k, n)
+        return indices, b
 
         A = zeros(Int, n, n)
 
@@ -145,8 +121,6 @@ function plant_regular_xorsat(k, n)
         end
     end
 
-    gs_energy = -n
-
     bonds = []
 
     for i = 1:n
@@ -156,4 +130,33 @@ function plant_regular_xorsat(k, n)
     @show A
 
     return (bonds, gs_energy, num_solutions)
+end
+
+
+"""
+    r_regular_k_xorsat(rng, n, r, k)
+
+Generates a ``r``-regurlar ``k``-XORSAT instance with ``n`` boolean variables.
+
+If ``r = k``, then falls back to [`k_regular_k_xorsat`](@ref).
+"""
+function r_regular_k_xorsat(rng, n, r, k)
+    if r == k
+        return k_regular_k_xorsat(rng, n, k)
+    else
+        # This might involve Sudoku solving
+        error("Method for generating generic r-regular k-XORSAT where r ≂̸ k is not implemented")
+    end
+end
+
+"""
+Repetitively generates k-regular k-XORSAT problems until an instance
+with non-zero solutions is obtained.
+Returns the resultant XORSAT instance formulated as an
+Ising minimization problem.
+Also returns the ground state energy and ground state degenaracy.
+
+"""
+function plant_regular_xorsat(k, n)
+    
 end
