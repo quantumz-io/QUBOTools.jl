@@ -23,7 +23,7 @@ function _parse_entry!(::Qubist, data::Dict{Symbol,Any}, line::AbstractString)
 end
 
 function _parse_header!(::Qubist, data::Dict{Symbol,Any}, line::AbstractString)
-    m = match(r"^([0-9]+) ([0-9]+)$", line)
+    m = match(r"^([0-9]+)\n+([0-9]+)$", line)
 
     if isnothing(m)
         return false
@@ -66,7 +66,9 @@ function read_model(io::IO, fmt::Qubist)
     )
 
     for line in readlines(io)
-        _parse_line!(fmt, data, strip(line))
+        if !isempty(line)
+            _parse_line!(fmt, data, strip(line))
+        end
     end
 
     return StandardModel(data[:linear_terms], data[:quadratic_terms])
