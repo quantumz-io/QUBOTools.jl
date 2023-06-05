@@ -71,5 +71,10 @@ function read_model(io::IO, fmt::Qubist)
         end
     end
 
-    return StandardModel(data[:linear_terms], data[:quadratic_terms])
+    return Model{Int,Float64,Int}(
+        data[:linear_terms],
+        data[:quadratic_terms],
+        sense = Min,
+        domain = 𝕊,
+    )
 end
