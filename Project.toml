@@ -4,6 +4,7 @@ authors = ["pedromxavier <pedroxavier@psr-inc.com>", "pedroripper <pedroripper@p
 version = "0.8.2"
 
 [deps]
+HDF5 = "f67ccb44-e63f-5c2f-98bd-6dc0ccc4ba2f"
 InteractiveUtils = "b77e0a4c-d291-57a0-90e8-8db25a27a240"
 JSON = "682c06a0-de6a-54ab-a142-c8b1cf79cde6"
 JSONSchema = "7d188eb4-7ad8-530c-ae41-71a32a6d4692"

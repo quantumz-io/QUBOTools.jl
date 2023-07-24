@@ -6,6 +6,7 @@ using JSONSchema
 using LinearAlgebra
 using SparseArrays
 using RecipesBase
+using HDF5
 using Base: @propagate_inbounds
 using InteractiveUtils: subtypes
 
@@ -43,6 +44,7 @@ export HFS
 export MiniZinc
 export Qubist
 export QUBO
+export HDF
 
 # Interface definitions
 include("interface/interface.jl")
