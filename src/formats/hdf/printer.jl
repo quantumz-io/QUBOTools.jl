@@ -1,22 +1,23 @@
-
-function _write_linear(io::IO)
-    arr = zeros(length(io))
-    for i in io
+function _write_linear(data::Dict{Int64, Float64})
+    arr = zeros(length(data))
+    println(data)
+    for i in data
         arr[i[1]] = i[2]
     end
     return arr
 end
 
-function _write_quadratic(io::IO, size::Int)
+function _write_quadratic(data::Dict{Tuple{Int64, Int64}, Float64}, size::Int)
     arr = zeros(size, size)
-    for i in io
+    println(data)
+    for i in data
         arr[i[1][1], i[1][2]] = i[2]
     end
 
     return arr
 end
 
-function write_model(io::IO, model::AbstractModel, fmt::HDF)
+function write_model(io::HDF5.File, model::AbstractModel, fmt::HDF)
     data = Dict{Symbol,Any}(
         :linear_terms    => linear_terms(model),
         :quadratic_terms => quadratic_terms(model),
@@ -29,16 +30,16 @@ function write_model(io::IO, model::AbstractModel, fmt::HDF)
         :sampleset       => sampleset(model),
     )
 
-    file = h5open(io, "w")
     linear_arr = _write_linear(data[:linear_terms])
     quadratic_arr = _write_quadratic(data[:quadratic_terms], length(data[:linear_terms]))
 
-    path = io
-    file = h5open(path, "w")
-    qubo = create_group(file, "Qubo")
-    spectrum = create_group(file, "Spectrum")
+    qubo = create_group(io, "Qubo")
+    spectrum = create_group(io, "Spectrum")
     qubo["biases"] = linear_arr
     qubo["couplings"] = quadratic_arr
+    spectrum["energies"] = [0;0]
+    spectrum["states"] = [0;0]
+    # close(io)
 
     return nothing
 

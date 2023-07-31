@@ -144,6 +144,13 @@ function Base.show(io::IO, fmt::F) where {F<:AbstractFormat}
 end
 
 function read_model(path::AbstractString, fmt::AbstractFormat = infer_format(path))
+    if (fmt == HDF(nothing, nothing))
+        file = h5open(path, "r")
+        model = read_model(file, fmt)
+        close(file)
+        return model
+    end
+
     return open(path, "r") do fp
         return read_model(fp, fmt)
     end
@@ -168,8 +175,15 @@ function Base.read!(path::AbstractString, model::AbstractModel, fmt::AbstractFor
 end
 
 function write_model(path::AbstractString, model::AbstractModel, fmt::AbstractFormat = infer_format(path))
-    open(path, "w") do fp
-        write_model(fp, model, fmt)
+    if (fmt == HDF(nothing, nothing))
+        file = h5open(path, "w")
+        write_model(file, model, fmt)
+        close(file)
+    
+    else
+        open(path, "w") do fp
+            write_model(fp, model, fmt)
+        end
     end
 end
 

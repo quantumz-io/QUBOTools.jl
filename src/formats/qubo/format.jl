@@ -6,7 +6,8 @@
 
 ### References
 [1] [qbsolv docs](https://docs.ocean.dwavesys.com/projects/qbsolv/en/latest/source/format.html)
-""" struct QUBO <: AbstractFormat
+""" 
+struct QUBO <: AbstractFormat
     style::Union{DWaveStyle,MQLibStyle,Nothing}
     comment::Union{String,Nothing}
 

@@ -5,6 +5,7 @@ const _BQPJSON_VERSION_LATEST = _BQPJSON_VERSION_LIST[end]
 
 _BQPJSON_VARIABLE_DOMAIN(::BoolDomain) = "boolean"
 _BQPJSON_VARIABLE_DOMAIN(::SpinDomain) = "spin"
+_BQPJSON_VARIABLE_DOMAIN(::Nothing) = "boolean"
 
 _BQPJSON_VALIDATE_DOMAIN(x::Integer, ::BoolDomain) = (x == 0) || (x == 1)
 _BQPJSON_VALIDATE_DOMAIN(s::Integer, ::SpinDomain) = (s == ↑) || (s == ↓)

@@ -1,4 +1,4 @@
-function _parse_linear(arr::Vector{Float64})
+function _parse_linear(arr::Any)
     if (size(arr) == 0)
         return
     end
@@ -35,7 +35,7 @@ function _parse_sparse(i::Vector{Int}, j::Vector{Int}, v::Matrix{Float64})
 end
 
 
-function _parse_data(file::HDF, data::Dict{Symbol, Any})
+function _parse_data(file::HDF5.File, data::Dict{Symbol, Any})
     qubo = read(file, "Qubo")
     spectrum = read(file, "Spectrum")
 
@@ -59,9 +59,7 @@ function _parse_data(file::HDF, data::Dict{Symbol, Any})
 
 end
 
-
-function read_model(io::IO, fmt::HDF)
-    file = h5open(io, "r")
+function read_model(io::HDF5.File, fmt::HDF)
 
     data = Dict{Symbol, Any}(
         :linear_terms    => Dict{Int,Float64}(),
@@ -75,19 +73,19 @@ function read_model(io::IO, fmt::HDF)
         :quadratic_size  => nothing,
     )
 
-    _parse_data(file, data)
-    close(file)
+    _parse_data(io, data)
+
 
     return Model{Int, Float64, Int}(
         data[:linear_terms],
         data[:quadratic_terms];
         scale       = data[:scale],
         offset      = data[:offset],
-        domain      = domain(fmt),
+        # domain      = domain(fmt),
         id          = data[:id],
         description = data[:description],
-        metadata    = data[:metadata],
-        sampleset = data[:sampleset]
+        # metadata    = data[:metadata],
+        # sampleset = data[:sampleset]
     )
 
     
