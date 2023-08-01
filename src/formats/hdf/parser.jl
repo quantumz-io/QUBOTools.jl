@@ -25,10 +25,10 @@ function _parse_dense(matrix::Any)
     return data
 end
 
-function _parse_sparse(i::Vector{Int}, j::Vector{Int}, v::Matrix{Float64})
+function _parse_sparse(i::Vector{Float64}, j::Vector{Float64}, v::Vector{Float64})
     data = Dict{Tuple{Int,Int},Float64}()
-    for (idx, val) in enumarate(i)
-        data[val, j[idx]] = v[val, j[idx]]
+    for (idx, val) in enumerate(i)
+        data[val, j[idx]] = v[idx]
     end
     return data
 
@@ -40,7 +40,7 @@ function _parse_data(file::HDF5.File, data::Dict{Symbol, Any})
     spectrum = read(file, "Spectrum")
 
     biases = qubo["biases"]
-    if ("J_coo" in keys(qubo)) 
+    if ("J_coo" in keys(qubo))
        j_coo = qubo["J_coo"]
        i = j_coo["I"]
        j = j_coo["J"]
@@ -51,7 +51,7 @@ function _parse_data(file::HDF5.File, data::Dict{Symbol, Any})
         data[:quadratic_terms] = _parse_dense(couplings)
     end
     energies = spectrum["energies"]
-    states = spectrum["energies"]
+    states = spectrum["states"]
 
 
     data[:linear_terms] = _parse_linear(biases)
@@ -74,18 +74,14 @@ function read_model(io::HDF5.File, fmt::HDF)
     )
 
     _parse_data(io, data)
-
-
+    
     return Model{Int, Float64, Int}(
         data[:linear_terms],
         data[:quadratic_terms];
         scale       = data[:scale],
         offset      = data[:offset],
-        # domain      = domain(fmt),
         id          = data[:id],
         description = data[:description],
-        # metadata    = data[:metadata],
-        # sampleset = data[:sampleset]
     )
 
     
